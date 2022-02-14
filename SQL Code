@@ -1,0 +1,107 @@
+Use supply_chain;
+
+
+select * from cycledata_csv ;
+
+# Crating Master table
+-- Creating Equipment Master Table
+Create table Equipment_Master As 
+select 
+'Primary Machine Name', 'Primary Machine Class Name', 
+'Secondary Machine Name','Secondary Machine Class Name', 'Loading Count',
+'iMine Load FCTR Truck', 'PREVIOUSSECONDARYMACHINE', 'PREVIOUSSINKDESTINATION', 'End Processor Name',
+ 'iMine Engine Hours', 'iMine Operating Hours', 'OPERATINGTIME (CAT)', 'OPERHOURSSECONDS',
+ 'Full Travel Duration', 'Empty Travel Duration','Idle Duration', 'Loading Duration', 'wait time for dumping',
+ 'Time required by truck to empty','Payload (kg)', 'Estimated Fuel Used	Fuel Used', 'Loading Efficiency',
+ 'OPERATINGBURNRATE', 'TMPH','Name of job code'
+ from cycledata_csv ;
+ 
+-- Creating Equipment_Type_Master Table	
+Create table Equipment_Type_Master As 
+select 		
+'Cycle Type', 'Primary Machine Category Name', 'Secondary Machine Category Name','TC','AT Available Time (iMine)',
+'Available SMU Time','Cycle Duration','Cycle SMU Duration', 'Down Time', 'Completed Cycle Count',
+'iMine Availability','iMine Utilisation','Job Type'
+from cycledata_csv ;
+
+-- Creating Location_Master Table	
+Create table Location_Master As 
+select 	
+'Source Location Name','Destination Location Name','Queuing at Sink Duration','Queuing at Source Duration',
+'Queuing Duration','Cycle End Timestamp (GMT8)','Cycle Start Timestamp (GMT8)', 'Source Loading Start Timestamp (GMT8)',
+'Source Loading End Timestamp (GMT8)'
+from cycledata_csv ;
+
+-- Creating Location_Type_Master Table
+Create table Location_Type_Master As 
+select 
+Movement_data'Source Location Description','Destination Location Description','Empty EFH Distance','Empty Slope Distance',
+'Queuing at Sink Duration','Queuing at Source Duration','Queuing Duration',
+'Source Location is Active Flag','Source Location is Source Flag', 'Destination Location is ActiveFlag',
+'Destination Location is Source Flag'
+from cycledata_csv ;
+
+## Creating Stored Procedures
+-- For Cycle Data 
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `Cycle_data`()
+BEGIN
+Select 
+"Primary Machine Name", 'Primary Machine Class Name',
+'Secondary Machine Name',
+'Secondary Machine Class Name', 
+'Loading Count','Cycle Type', 'TC', 
+'Cycle Duration','Cycle SMU Duration','iMine Engine Hours', 
+'iMine Operating Hours', 'OPERATINGTIME (CAT)', 'OPERHOURSSECONDS', 
+'Cycle Start Timestamp (GMT8)','Cycle End Timestamp (GMT8)',
+'Payload (kg)','Empty EFH Distance','Completed Cycle Count',
+'iMine Availability','iMine Utilisation'
+from cycledata_csv;
+END$$
+DELIMITER ;
+
+-- For Movement Data
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `Movement_data`()
+BEGIN
+select 
+'Source Location Name','Destination Location Name','Source Loading Start Timestamp (GMT8)',
+'Source Loading End Timestamp (GMT8)','Source Location Description',
+'Destination Location Description','Empty EFH Distance','Empty Slope Distance',
+'Source Location is Active Flag','Source Location is Source Flag', 
+'Destination Location is ActiveFlag','Destination Location is Source Flag',
+'Full Travel Duration', 'Empty Travel Duration','Idle Duration', 
+'Loading Duration', 'wait time for dumping', 'Time required by truck to empty'
+from cycledata_csv;		
+END$$
+DELIMITER ;
+
+-- For Delay Data
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `Delay_Data`()
+BEGIN
+Select 
+'Down Time',
+'Queuing at Sink Duration','Queuing at Source Duration','Queuing Duration',
+'Queuing at Sink Duration','Queuing at Source Duration','Queuing Duration',
+'Empty Travel Duration','Idle Duration', 'Loading Duration', 'wait time for dumping',
+'Time required by truck to empty'
+from cycledata_csv ;
+END$$
+DELIMITER ;
+
+-- For OEE Calculation multiplying the calculated fields which were made in Tableau Workbook. 
+-- Availability = (( Available Time – Down time)/Available time) * 100
+-- Performance = ((Operating time CAT – Idle Duration) / Operating Time CAT )* 100
+-- Quality = (iMine Operating Hours – Down time)/  Net Operating Loss
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `Delay_Data`()
+BEGIN
+Select 'Availability' , 'Performance' , 'Quality',
+ Availability*Performance*Quality  AS OEE
+FROM cycledata_csv;
+END$$
+DELIMITER ;
+
+
